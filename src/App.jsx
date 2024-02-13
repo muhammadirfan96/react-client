@@ -5,9 +5,9 @@ function App() {
     <>
       <div>
         <p className="text-2xl text-center">selamat datang</p>
+        
+        <Home />
       </div>
-
-      <Home />
     </>
   );
 }
