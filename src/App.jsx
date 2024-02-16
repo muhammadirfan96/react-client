@@ -4,8 +4,7 @@ function App() {
   return (
     <>
       <div>
-        <p className="text-2xl text-center">selamat datang</p>
-        
+        <p className="text-2xl text-center relative">selamat datang</p>
         <Home />
       </div>
     </>

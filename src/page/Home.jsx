@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../output.css';
+import { Confirmation, Notification } from '../components/Alert.jsx';
 
 const Home = () => {
   const api = 'http://localhost:5000';
@@ -9,31 +10,29 @@ const Home = () => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [errForm, setErrForm] = useState(null);
-  const [form, setForm] = useState(['add', null]);
+  const [form, setForm] = useState(null);
 
   const handleAdd = () => {
-    setForm(['add', null]);
-    toggleModal();
+    setForm(null);
+    openModal();
   };
 
   const handleUpdate = async id => {
-    // alert dulu
-    setForm(['update', id]);
+    setForm({ id: id });
     const oldData = await axios.get(`${api}/product/${id}`);
-    toggleModal();
+    openModal();
     setName(oldData.data?.name);
     setPrice(oldData.data?.price);
   };
 
-  const handleDelete = id => {
-    // alert dulu
-    deleteData(id);
-  };
-
   const handleSubmit = event => {
     event.preventDefault();
-    // alert(form[1])
-    form[0] == 'add' ? addData() : updateData(form[1]);
+    form ? updateData(form.id) : addData();
+  };
+
+  const handleDelete = id => {
+    deleteData(id);
+    setConfirmation(false);
   };
 
   const addData = async () => {
@@ -44,7 +43,8 @@ const Home = () => {
         // { header: { Authorization: `Bearer ${token}` } }
       );
 
-      toggleModal();
+      setNotification({ message: 'new data has been added' });
+      closeModal();
       getProducts();
     } catch (e) {
       const arrError = e.response.data.error.split(',');
@@ -54,12 +54,13 @@ const Home = () => {
 
   const updateData = async id => {
     try {
-      const response = await axios.patch(`${api}/product/${id}`, {
+      await axios.patch(`${api}/product/${id}`, {
         name,
         price
       });
-      
-      toggleModal();
+
+      setNotification({ message: 'selected data has been updated' });
+      closeModal();
       getProducts();
     } catch (e) {
       const arrError = e.response.data.error.split(',');
@@ -69,13 +70,11 @@ const Home = () => {
 
   const deleteData = async id => {
     try {
-      const response = await axios.delete(`${api}/product/${id}`);
+      await axios.delete(`${api}/product/${id}`);
+      setNotification({ message: 'selected data has been deleted' });
       getProducts();
-      // notif berisi response
     } catch (e) {
-      console.log(e);
-      // const arrError = e.response.data.error.split(',');
-      // setErrForm(arrError);
+      setNotification({ message: e.message });
     }
   };
 
@@ -112,12 +111,23 @@ const Home = () => {
 
   // modal
   const [showModal, setShowModal] = useState(false);
-  const toggleModal = () => {
-    setShowModal(!showModal);
+  const openModal = () => setShowModal(true);
+  const closeModal = () => {
+    setShowModal(false);
     setErrForm(null);
     setName('');
     setPrice('');
   };
+
+  // notification
+  const [notification, setNotification] = useState(false);
+  if (notification)
+    setTimeout(function () {
+      setNotification(false);
+    }, 3000);
+
+  // confirmation
+  const [confirmation, setConfirmation] = useState(false);
 
   useEffect(() => {
     getProducts();
@@ -212,7 +222,14 @@ const Home = () => {
                       update
                     </button>
                     <button
-                      onClick={() => handleDelete(product._id)}
+                      onClick={() =>
+                        setConfirmation({
+                          message:
+                            'the selected data will be permanently delete ?',
+                          handleOke: () => handleDelete(product._id),
+                          handleCancel: () => setConfirmation(false)
+                        })
+                      }
                       className="text-xs w-full italic rounded p-1 bg-red-700 text-white">
                       delete
                     </button>
@@ -222,16 +239,16 @@ const Home = () => {
             </table>
           </div>
         </div>
-        <div className="w-[95%] md:w-[45%] flex flex-wrap justify-between">
-          log nya
-        </div>
+        {/*<div className="w-[95%] md:w-[45%] flex flex-wrap justify-between">
+          authentication
+        </div>*/}
       </div>
 
       {showModal && (
         <div className="bg-slate-900 bg-opacity-50 fixed right-0 left-0 top-0 bottom-0 z-10">
           <div className="w-[95%] md:w-[80%] lg:w-[50%] rounded-md shadow-md shadow-teal-100 p-2 bg-white mx-auto mt-20 relative">
             <button
-              onClick={toggleModal}
+              onClick={closeModal}
               className="absolute -right-1 -top-1 rounded bg-red-700 px-1 text-white">
               x
             </button>
@@ -242,7 +259,7 @@ const Home = () => {
                 ))}
               </div>
             )}
-            <form className="" onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit}>
               <input
                 type="text"
                 placeholder="product name"
@@ -266,6 +283,8 @@ const Home = () => {
           </div>
         </div>
       )}
+      <Confirmation confirmation={confirmation} />
+      <Notification notification={notification} />
     </>
   );
 };
