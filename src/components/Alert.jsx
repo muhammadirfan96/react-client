@@ -1,4 +1,12 @@
-const Confirmation = ({ confirmation }) => {
+import { useDispatch, useSelector } from 'react-redux';
+import { setNotification } from '../redux/notificationSlice.js';
+
+const Confirmation = () => {
+  const dispatch = useDispatch();
+  const confirmation = useSelector(
+    state => state.confirmationAlert.confirmation
+  );
+
   return (
     <>
       {confirmation && (
@@ -27,11 +35,22 @@ const Confirmation = ({ confirmation }) => {
   );
 };
 
-const Notification = ({ notification }) => {
+const Notification = () => {
+  const dispatch = useDispatch();
+  const notification = useSelector(
+    state => state.notificationAlert.notification
+  );
+
+  if (notification)
+    setTimeout(function () {
+      dispatch(setNotification(false));
+    }, 3000);
+
   return (
     <>
       {notification && (
-        <div className="w-80 rounded-md shadow-md shadow-teal-100 p-1 bg-teal-100 mt-1 fixed right-0.5 top-0.5 z-20">
+        <div
+          className={`${notification.background} rounded-md shadow-md p-1 mt-1 fixed right-0.5 top-0.5 z-20`}>
           <p className="text-xs text-center">{notification.message}</p>
         </div>
       )}

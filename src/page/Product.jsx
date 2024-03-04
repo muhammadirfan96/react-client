@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { axiosDefault } from '../config/axios.js';
-import '../output.css';
-import { Confirmation, Notification } from '../components/Alert.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import { setNotification } from '../redux/notificationSlice.js';
+import { setConfirmation } from '../redux/confirmationSlice.js';
 
 const Product = () => {
-  const api = 'http://localhost:5000';
+  const dispatch = useDispatch();
 
   // submit
   const [name, setName] = useState('');
@@ -20,7 +20,7 @@ const Product = () => {
 
   const handleUpdate = async id => {
     setForm({ id: id });
-    const oldData = await axios.get(`${api}/product/${id}`);
+    const oldData = await axiosDefault.get(`/product/${id}`);
     openModal();
     setName(oldData.data?.name);
     setPrice(oldData.data?.price);
@@ -33,18 +33,18 @@ const Product = () => {
 
   const handleDelete = id => {
     deleteData(id);
-    setConfirmation(false);
+    dispatch(setConfirmation(false));
   };
 
   const addData = async () => {
     try {
-      await axios.post(
-        `${api}/product`,
-        { name, price }
-        // { header: { Authorization: `Bearer ${token}` } }
+      await axiosDefault.post(`/product`, { name, price });
+      dispatch(
+        setNotification({
+          message: 'new data has been added',
+          background: 'bg-teal-100'
+        })
       );
-
-      setNotification({ message: 'new data has been added' });
       closeModal();
       getProducts();
     } catch (e) {
@@ -55,12 +55,17 @@ const Product = () => {
 
   const updateData = async id => {
     try {
-      await axios.patch(`${api}/product/${id}`, {
+      await axiosDefault.patch(`/product/${id}`, {
         name,
         price
       });
 
-      setNotification({ message: 'selected data has been updated' });
+      dispatch(
+        setNotification({
+          message: 'selected data has been updated',
+          background: 'bg-teal-100'
+        })
+      );
       closeModal();
       getProducts();
     } catch (e) {
@@ -71,11 +76,18 @@ const Product = () => {
 
   const deleteData = async id => {
     try {
-      await axios.delete(`${api}/product/${id}`);
-      setNotification({ message: 'selected data has been deleted' });
+      await axiosDefault.delete(`/product/${id}`);
+      dispatch(
+        setNotification({
+          message: 'selected data has been deleted',
+          background: 'bg-teal-100'
+        })
+      );
       getProducts();
     } catch (e) {
-      setNotification({ message: e.message });
+      dispatch(
+        setNotification({ message: e.message, background: 'bg-red-100' })
+      );
     }
   };
 
@@ -119,16 +131,6 @@ const Product = () => {
     setName('');
     setPrice('');
   };
-
-  // notification
-  const [notification, setNotification] = useState(false);
-  if (notification)
-    setTimeout(function () {
-      setNotification(false);
-    }, 3000);
-
-  // confirmation
-  const [confirmation, setConfirmation] = useState(false);
 
   useEffect(() => {
     getProducts();
@@ -224,12 +226,14 @@ const Product = () => {
                     </button>
                     <button
                       onClick={() =>
-                        setConfirmation({
-                          message:
-                            'the selected data will be permanently delete ?',
-                          handleOke: () => handleDelete(product._id),
-                          handleCancel: () => setConfirmation(false)
-                        })
+                        dispatch(
+                          setConfirmation({
+                            message:
+                              'the selected data will be permanently delete ?',
+                            handleOke: () => handleDelete(product._id),
+                            handleCancel: () => dispatch(setConfirmation(false))
+                          })
+                        )
                       }
                       className="text-xs w-full italic rounded p-1 bg-red-700 text-white">
                       delete
@@ -240,11 +244,7 @@ const Product = () => {
             </table>
           </div>
         </div>
-        {/*<div className="w-[95%] md:w-[45%] flex flex-wrap justify-between">
-          authentication
-        </div>*/}
       </div>
-
       {showModal && (
         <div className="bg-slate-900 bg-opacity-50 fixed right-0 left-0 top-0 bottom-0 z-10">
           <div className="w-[95%] md:w-[80%] lg:w-[50%] rounded-md shadow-md shadow-teal-100 p-2 bg-white mx-auto mt-20 relative">
@@ -284,8 +284,6 @@ const Product = () => {
           </div>
         </div>
       )}
-      <Confirmation confirmation={confirmation} />
-      <Notification notification={notification} />
     </>
   );
 };
