@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { axiosDefault } from '../config/axios.js';
+import {axiosRefreshToken} from '../config/axios.js'
 import { useDispatch, useSelector } from 'react-redux';
 import { setNotification } from '../redux/notificationSlice.js';
 import { setConfirmation } from '../redux/confirmationSlice.js';
 
 const Product = () => {
   const dispatch = useDispatch();
+  const username = useSelector(state => state.jwToken.username);
+  const token = useSelector(state => state.jwToken.token);
+  const expire = useSelector(state => state.jwToken.expire);
 
   // submit
   const [name, setName] = useState('');
@@ -20,7 +23,7 @@ const Product = () => {
 
   const handleUpdate = async id => {
     setForm({ id: id });
-    const oldData = await axiosDefault.get(`/product/${id}`);
+    const oldData = await axiosRefreshToken.get(`/product/${id}`);
     openModal();
     setName(oldData.data?.name);
     setPrice(oldData.data?.price);
@@ -38,7 +41,7 @@ const Product = () => {
 
   const addData = async () => {
     try {
-      await axiosDefault.post(`/product`, { name, price });
+      await axiosRefreshToken.post(`/product`, { name, price });
       dispatch(
         setNotification({
           message: 'new data has been added',
@@ -55,7 +58,7 @@ const Product = () => {
 
   const updateData = async id => {
     try {
-      await axiosDefault.patch(`/product/${id}`, {
+      await axiosRefreshToken.patch(`/product/${id}`, {
         name,
         price
       });
@@ -76,7 +79,7 @@ const Product = () => {
 
   const deleteData = async id => {
     try {
-      await axiosDefault.delete(`/product/${id}`);
+      await axiosRefreshToken.delete(`/product/${id}`);
       dispatch(
         setNotification({
           message: 'selected data has been deleted',
@@ -85,8 +88,9 @@ const Product = () => {
       );
       getProducts();
     } catch (e) {
+      const arrError = e.response.data.error.split(',');
       dispatch(
-        setNotification({ message: e.message, background: 'bg-red-100' })
+        setNotification({ message: arrError, background: 'bg-red-100' })
       );
     }
   };
@@ -102,11 +106,18 @@ const Product = () => {
   const [searchBased, setSearchBased] = useState('name');
 
   const getProducts = async () => {
-    const response = await axiosDefault.get(
-      `/products?limit=${limit}&page=${page}&${key}`
-    );
-    setProducts(response.data.data);
-    setAllPage(response.data.all_page);
+    try {
+      const response = await axiosRefreshToken.get(
+        `/products?limit=${limit}&page=${page}&${key}`
+      );
+      setProducts(response.data.data);
+      setAllPage(response.data.all_page);
+    } catch (e) {
+      const arrError = e.response.data.error.split(',');
+      dispatch(
+        setNotification({ message: arrError, background: 'bg-red-100' })
+      );
+    }
   };
 
   const pageComponents = [];
@@ -138,6 +149,7 @@ const Product = () => {
 
   return (
     <>
+      {token}
       <div className="flex flex-wrap gap-2 justify-evenly mt-2">
         <div className="w-[95%] md:w-[45%]">
           <div className="flex flex-wrap justify-between mb-2">
