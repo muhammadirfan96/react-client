@@ -1,10 +1,10 @@
-import Login from '../auth/Login.jsx';
+import Animate from '../components/Animate.jsx';
 
 const Home = () => {
   return (
     <>
-      <div className="">
-        <Login />
+      <div>
+        <Animate />
       </div>
     </>
   );

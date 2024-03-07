@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import {axiosRefreshToken} from '../config/axios.js'
+import { axiosRT } from '../config/axios.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { setNotification } from '../redux/notificationSlice.js';
 import { setConfirmation } from '../redux/confirmationSlice.js';
 
 const Product = () => {
   const dispatch = useDispatch();
-  const username = useSelector(state => state.jwToken.username);
+
   const token = useSelector(state => state.jwToken.token);
   const expire = useSelector(state => state.jwToken.expire);
+
+  const axiosInterceptors = axiosRT(token, expire, dispatch);
 
   // submit
   const [name, setName] = useState('');
@@ -23,7 +25,7 @@ const Product = () => {
 
   const handleUpdate = async id => {
     setForm({ id: id });
-    const oldData = await axiosRefreshToken.get(`/product/${id}`);
+    const oldData = await axiosInterceptors.get(`/product/${id}`);
     openModal();
     setName(oldData.data?.name);
     setPrice(oldData.data?.price);
@@ -41,7 +43,7 @@ const Product = () => {
 
   const addData = async () => {
     try {
-      await axiosRefreshToken.post(`/product`, { name, price });
+      await axiosInterceptors.post(`/product`, { name, price });
       dispatch(
         setNotification({
           message: 'new data has been added',
@@ -58,7 +60,7 @@ const Product = () => {
 
   const updateData = async id => {
     try {
-      await axiosRefreshToken.patch(`/product/${id}`, {
+      await axiosInterceptors.patch(`/product/${id}`, {
         name,
         price
       });
@@ -79,7 +81,7 @@ const Product = () => {
 
   const deleteData = async id => {
     try {
-      await axiosRefreshToken.delete(`/product/${id}`);
+      await axiosInterceptors.delete(`/product/${id}`);
       dispatch(
         setNotification({
           message: 'selected data has been deleted',
@@ -107,7 +109,7 @@ const Product = () => {
 
   const getProducts = async () => {
     try {
-      const response = await axiosRefreshToken.get(
+      const response = await axiosInterceptors.get(
         `/products?limit=${limit}&page=${page}&${key}`
       );
       setProducts(response.data.data);
@@ -149,114 +151,120 @@ const Product = () => {
 
   return (
     <>
-      {token}
-      <div className="flex flex-wrap gap-2 justify-evenly mt-2">
-        <div className="w-[95%] md:w-[45%]">
-          <div className="flex flex-wrap justify-between mb-2">
-            <div className="w-[30%] rounded shadow shadow-teal-100 p-1">
-              <p className="text-xs border-b border-teal-300">limit</p>
-              <div>
-                <input
-                  type="button"
-                  value="4"
-                  onClick={e => setLimit(e.target.value)}
-                  className={`${
-                    limit == 4 ? 'bg-teal-300' : ''
-                  } text-xs px-2 mx-1 rounded border border-teal-100`}
-                />
-                <input
-                  type="button"
-                  value="6"
-                  onClick={e => setLimit(e.target.value)}
-                  className={`${
-                    limit == 6 ? 'bg-teal-300' : ''
-                  } text-xs px-2 mx-1 rounded border border-teal-100`}
-                />
-                <input
-                  type="button"
-                  value="8"
-                  onClick={e => setLimit(e.target.value)}
-                  className={`${
-                    limit == 8 ? 'bg-teal-300' : ''
-                  } text-xs px-2 mx-1 rounded border border-teal-100`}
-                />
+      {token ? (
+        <div className="flex flex-wrap gap-2 justify-evenly mt-2">
+          <div className="w-[95%] md:w-[45%]">
+            <div className="flex flex-wrap justify-between mb-2">
+              <div className="w-[30%] rounded shadow shadow-teal-100 p-1">
+                <p className="text-xs border-b border-teal-300">limit</p>
+                <div>
+                  <input
+                    type="button"
+                    value="4"
+                    onClick={e => setLimit(e.target.value)}
+                    className={`${
+                      limit == 4 ? 'bg-teal-300' : ''
+                    } text-xs px-2 mx-1 rounded border border-teal-100`}
+                  />
+                  <input
+                    type="button"
+                    value="6"
+                    onClick={e => setLimit(e.target.value)}
+                    className={`${
+                      limit == 6 ? 'bg-teal-300' : ''
+                    } text-xs px-2 mx-1 rounded border border-teal-100`}
+                  />
+                  <input
+                    type="button"
+                    value="8"
+                    onClick={e => setLimit(e.target.value)}
+                    className={`${
+                      limit == 8 ? 'bg-teal-300' : ''
+                    } text-xs px-2 mx-1 rounded border border-teal-100`}
+                  />
+                </div>
+              </div>
+              <div className="w-[30%] rounded shadow shadow-teal-100 p-1">
+                <p className="text-xs border-b border-teal-300 mb-1">page</p>
+                <div className="flex overflow-auto">{pageComponents}</div>
+              </div>
+              <div className="w-[30%] rounded shadow shadow-teal-100 p-1">
+                <p className="text-xs border-b border-teal-300">
+                  <select
+                    value={searchBased}
+                    onChange={e => setSearchBased(e.target.value)}>
+                    <option selected>name</option>
+                    <option disabled>price</option>
+                  </select>
+                  <button
+                    onClick={() => setKey(`${searchBased}=${search}`)}
+                    className="text-xs text-white italic bg-green-700 px-1 rounded">
+                    go
+                  </button>
+                </p>
+                <div className="overflow-auto">
+                  <input
+                    type="text"
+                    autocomplete="off"
+                    placeholder="..."
+                    className="border border-teal-100 rounded"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
-            <div className="w-[30%] rounded shadow shadow-teal-100 p-1">
-              <p className="text-xs border-b border-teal-300 mb-1">page</p>
-              <div className="flex overflow-auto">{pageComponents}</div>
-            </div>
-            <div className="w-[30%] rounded shadow shadow-teal-100 p-1">
-              <p className="text-xs border-b border-teal-300">
-                <select
-                  value={searchBased}
-                  onChange={e => setSearchBased(e.target.value)}>
-                  <option selected>name</option>
-                  <option disabled>price</option>
-                </select>
-                <button
-                  onClick={() => setKey(`${searchBased}=${search}`)}
-                  className="text-xs text-white italic bg-green-700 px-1 rounded">
-                  go
-                </button>
-              </p>
-              <div className="overflow-auto">
-                <input
-                  type="text"
-                  autocomplete="off"
-                  placeholder="..."
-                  className="border border-teal-100 rounded"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={handleAdd}
-            className="w-full p-1 mb-2 rounded-md border bg-teal-300 text-xs">
-            add product
-          </button>
-          <div className="w-full rounded-md shadow-md shadow-teal-100 p-2">
-            <table className="w-full">
-              <tr className="bg-teal-300 border-b-2 border-teal-700">
-                <th className="w-[10%]">no</th>
-                <th className="w-[50%]">name</th>
-                <th className="w-[30%]">price</th>
-                <th className="w-[10%]">action</th>
-              </tr>
-              {products.map((product, index) => (
-                <tr key={product._id} className="border-b border-teal-300">
-                  <td>{index + 1}</td>
-                  <td>{product.name}</td>
-                  <td>{product.price}</td>
-                  <td>
-                    <button
-                      onClick={() => handleUpdate(product._id)}
-                      className="text-xs w-full italic rounded p-1 bg-green-700 text-white">
-                      update
-                    </button>
-                    <button
-                      onClick={() =>
-                        dispatch(
-                          setConfirmation({
-                            message:
-                              'the selected data will be permanently delete ?',
-                            handleOke: () => handleDelete(product._id),
-                            handleCancel: () => dispatch(setConfirmation(false))
-                          })
-                        )
-                      }
-                      className="text-xs w-full italic rounded p-1 bg-red-700 text-white">
-                      delete
-                    </button>
-                  </td>
+            <button
+              onClick={handleAdd}
+              className="w-full p-1 mb-2 rounded-md border bg-teal-300 text-xs">
+              add product
+            </button>
+            <div className="w-full rounded-md shadow-md shadow-teal-100 p-2">
+              <table className="w-full">
+                <tr className="bg-teal-300 border-b-2 border-teal-700">
+                  <th className="w-[10%]">no</th>
+                  <th className="w-[50%]">name</th>
+                  <th className="w-[30%]">price</th>
+                  <th className="w-[10%]">action</th>
                 </tr>
-              ))}
-            </table>
+                {products.map((product, index) => (
+                  <tr key={product._id} className="border-b border-teal-300">
+                    <td>{index + 1}</td>
+                    <td>{product.name}</td>
+                    <td>{product.price}</td>
+                    <td>
+                      <button
+                        onClick={() => handleUpdate(product._id)}
+                        className="text-xs w-full italic rounded p-1 bg-green-700 text-white">
+                        update
+                      </button>
+                      <button
+                        onClick={() =>
+                          dispatch(
+                            setConfirmation({
+                              message:
+                                'the selected data will be permanently delete ?',
+                              handleOke: () => handleDelete(product._id),
+                              handleCancel: () =>
+                                dispatch(setConfirmation(false))
+                            })
+                          )
+                        }
+                        className="text-xs w-full italic rounded p-1 bg-red-700 text-white">
+                        delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </table>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="text-center p-4 m-4 rounded bg-red-100">
+          unauthorized
+        </div>
+      )}
       {showModal && (
         <div className="bg-slate-900 bg-opacity-50 fixed right-0 left-0 top-0 bottom-0 z-10">
           <div className="w-[95%] md:w-[80%] lg:w-[50%] rounded-md shadow-md shadow-teal-100 p-2 bg-white mx-auto mt-20 relative">
