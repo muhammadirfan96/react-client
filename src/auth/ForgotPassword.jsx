@@ -3,7 +3,6 @@ import { axiosDefault } from '../config/axios.js';
 import { useDispatch } from 'react-redux';
 import { setNotification } from '../redux/notificationSlice.js';
 import { useNavigate } from 'react-router-dom';
-import ResetPassword from './ResetPassword.jsx';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -23,8 +22,8 @@ const ForgotPassword = () => {
         })
       );
 
-      setReset({ email }); // reset password
       closeModal();
+      navigate(`/reset-password/${email}`);
     } catch (e) {
       const arrError = e.response.data.error.split(',');
       setErrForm(arrError);
@@ -37,14 +36,8 @@ const ForgotPassword = () => {
     setShowModal(false);
     setErrForm(null);
     setEmail('');
+    navigate('/');
   };
-
-  const back = () => {
-    closeModal();
-    navigate('/login');
-  };
-  
-    const [reset, setReset] = useState(false); // reset password
 
   return (
     <>
@@ -55,7 +48,7 @@ const ForgotPassword = () => {
               Forgot password
             </p>
             <button
-              onClick={back}
+              onClick={closeModal}
               className="absolute -right-1 -top-1 rounded bg-red-700 px-1 text-white">
               x
             </button>
@@ -83,8 +76,6 @@ const ForgotPassword = () => {
           </div>
         </div>
       )}
-
-      <ResetPassword reset={{ reset, setReset }} />
     </>
   );
 };

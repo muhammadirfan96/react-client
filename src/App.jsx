@@ -4,6 +4,8 @@ import NotFound from './page/NotFound.jsx';
 import Login from './auth/Login.jsx';
 import Register from './auth/Register.jsx';
 import ForgotPassword from './auth/ForgotPassword.jsx';
+import ActivationUser from './auth/ActivationUser.jsx';
+import ResetPassword from './auth/ResetPassword.jsx';
 import { Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from './redux/store.js';
@@ -25,6 +27,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/activation-user/:email" element={<ActivationUser />} />
+          <Route path="/reset-password/:email" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Provider>

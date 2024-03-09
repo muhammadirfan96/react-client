@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { axiosDefault } from '../config/axios.js';
 import { useDispatch } from 'react-redux';
 import { setNotification } from '../redux/notificationSlice.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const ActivationUser = ({ activation }) => {
+const ActivationUser = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { email } = useParams();
 
   const [activationToken, setActivationToken] = useState('');
   const [errForm, setErrForm] = useState(null);
@@ -14,10 +15,9 @@ const ActivationUser = ({ activation }) => {
   const handleSubmit = async event => {
     event.preventDefault();
     try {
-      const response = await axiosDefault.patch(
-        `/activation-user/${activation.activation.email}`,
-        { activationToken }
-      );
+      const response = await axiosDefault.patch(`/activation-user/${email}`, {
+        activationToken
+      });
 
       dispatch(
         setNotification({
@@ -26,19 +26,25 @@ const ActivationUser = ({ activation }) => {
         })
       );
 
-      setActivationToken('');
-      setErrForm(null);
-      activation.setActivation(false);
-      navigate('/')
+      closeModal();
     } catch (e) {
       const arrError = e.response.data.error.split(',');
       setErrForm(arrError);
     }
   };
 
+  const [showModal, setShowModal] = useState(true);
+
+  const closeModal = () => {
+    setShowModal(false);
+    setErrForm(null);
+    setActivationToken('');
+    navigate('/');
+  };
+
   return (
     <>
-      {activation.activation && (
+      {showModal && (
         <div className="bg-slate-900 bg-opacity-50 fixed right-0 left-0 top-0 bottom-0 z-10">
           <div className="w-[95%] md:w-[80%] lg:w-[50%] rounded-md shadow-md shadow-teal-100 p-2 bg-white mx-auto mt-20 relative">
             <p className="text-center border-b border-teal-700 mb-2">

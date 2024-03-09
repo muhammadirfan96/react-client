@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { axiosDefault } from '../config/axios.js';
 import { useDispatch } from 'react-redux';
 import { setNotification } from '../redux/notificationSlice.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const ResetPassword = ({ reset }) => {
+const ResetPassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { email } = useParams();
 
   const [resetPasswordToken, setResetPasswordToken] = useState('');
   const [password, setPassword] = useState('');
@@ -16,10 +17,11 @@ const ResetPassword = ({ reset }) => {
   const handleSubmit = async event => {
     event.preventDefault();
     try {
-      const response = await axiosDefault.patch(
-        `/reset-password/${reset.reset.email}`,
-        { resetPasswordToken, password, confPassword }
-      );
+      const response = await axiosDefault.patch(`/reset-password/${email}`, {
+        resetPasswordToken,
+        password,
+        confPassword
+      });
 
       dispatch(
         setNotification({
@@ -28,21 +30,27 @@ const ResetPassword = ({ reset }) => {
         })
       );
 
-      setResetPasswordToken('');
-      setPassword('');
-      setConfPassword('');
-      setErrForm(null);
-      reset.setReset(false);
-      navigate('/');
+      closeModal();
     } catch (e) {
       const arrError = e.response.data.error.split(',');
       setErrForm(arrError);
     }
   };
 
+  const [showModal, setShowModal] = useState(true);
+
+  const closeModal = () => {
+    setShowModal(false);
+    setErrForm(null);
+    setResetPasswordToken('');
+    setPassword('');
+    setConfPassword('');
+    navigate('/');
+  };
+
   return (
     <>
-      {reset.reset && (
+      {showModal && (
         <div className="bg-slate-900 bg-opacity-50 fixed right-0 left-0 top-0 bottom-0 z-10">
           <div className="w-[95%] md:w-[80%] lg:w-[50%] rounded-md shadow-md shadow-teal-100 p-2 bg-white mx-auto mt-20 relative">
             <p className="text-center border-b border-teal-700 mb-2">
