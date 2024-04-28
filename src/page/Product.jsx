@@ -20,11 +20,13 @@ const Product = () => {
 
   const handleAdd = () => {
     setForm(null);
+    setNamaModal('add product');
     openModal();
   };
 
   const handleUpdate = async id => {
     setForm({ id: id });
+    setNamaModal('update product');
     const oldData = await axiosInterceptors.get(`/product/${id}`);
     openModal();
     setName(oldData.data?.name);
@@ -136,6 +138,7 @@ const Product = () => {
   }
 
   // modal
+  const [namaModal, setNamaModal] = useState('');
   const [showModal, setShowModal] = useState(false);
   const openModal = () => setShowModal(true);
   const closeModal = () => {
@@ -153,7 +156,7 @@ const Product = () => {
     <>
       {token ? (
         <div className="flex flex-wrap gap-2 justify-evenly mt-2">
-          <div className="w-[95%] md:w-[45%]">
+          <div className="w-[95%] md:w-[75%] lg:w-[45%]">
             <div className="flex flex-wrap justify-between mb-2">
               <div className="w-[30%] rounded shadow shadow-teal-100 p-1">
                 <p className="text-xs border-b border-teal-300">limit</p>
@@ -266,41 +269,46 @@ const Product = () => {
         </div>
       )}
       {showModal && (
-        <div className="bg-slate-900 bg-opacity-50 fixed right-0 left-0 top-0 bottom-0 z-10">
-          <div className="w-[95%] md:w-[80%] lg:w-[50%] rounded-md shadow-md shadow-teal-100 p-2 bg-white mx-auto mt-20 relative">
+        <div className="bg-slate-900 bg-opacity-80 fixed right-0 left-0 top-0 bottom-0 z-10 flex justify-center items-center">
+          <div className="w-[95%] md:w-[80%] lg:w-[50%] rounded-md shadow-md shadow-teal-100 bg-white relative">
+            <p className="text-center border-b-2 border-teal-700 mb-2">
+              {namaModal}
+            </p>
             <button
               onClick={closeModal}
               className="absolute -right-1 -top-1 rounded bg-red-700 px-1 text-white">
               x
             </button>
-            {errForm && (
-              <div className="text-xs text-red-700 italic rounded border border-red-700 mb-2 p-1">
-                {errForm.map((err, index) => (
-                  <p key={index}>{err}</p>
-                ))}
-              </div>
-            )}
-            <form onSubmit={handleSubmit}>
-              <input
-                type="text"
-                placeholder="product name"
-                className="w-full p-1 mb-1 rounded-md border"
-                value={name}
-                onChange={e => setName(e.target.value)}
-              />
-              <input
-                type="text"
-                placeholder="price"
-                className="w-full p-1 mb-1 rounded-md border"
-                value={price}
-                onChange={e => setPrice(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="w-full p-1 mb-1 rounded-md border bg-teal-300">
-                submit
-              </button>
-            </form>
+            <div className="max-h-96 md:max-h-72 overflow-auto p-2 mt-1">
+              {errForm && (
+                <div className="text-xs text-red-700 italic rounded border border-red-700 mb-2 p-1">
+                  {errForm.map((err, index) => (
+                    <p key={index}>{err}</p>
+                  ))}
+                </div>
+              )}
+              <form onSubmit={handleSubmit}>
+                <input
+                  type="text"
+                  placeholder="product name"
+                  className="w-full p-1 mb-1 rounded-md border"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="price"
+                  className="w-full p-1 mb-1 rounded-md border"
+                  value={price}
+                  onChange={e => setPrice(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="w-full p-1 mb-1 rounded-md border bg-teal-300">
+                  submit
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}

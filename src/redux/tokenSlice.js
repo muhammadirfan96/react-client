@@ -5,7 +5,8 @@ const tokenSlice = createSlice({
   initialState: {
     token: '',
     expire: '',
-    username: ''
+    username: '',
+    role: ''
   },
   reducers: {
     setToken(state, action) {
@@ -16,9 +17,12 @@ const tokenSlice = createSlice({
     },
     setUsername(state, action) {
       state.username = action.payload;
+    },
+    setRole(state, action) {
+      state.role = action.payload;
     }
   }
 });
 
-export const { setToken, setExpire, setUsername } = tokenSlice.actions;
+export const { setToken, setExpire, setUsername, setRole } = tokenSlice.actions;
 export default tokenSlice.reducer;
